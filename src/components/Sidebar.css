@@ -132,6 +132,10 @@
     border-radius: 0;
   }
 
+  .sidebar-label {
+    opacity: 1;
+  }
+
   .sidebar-item.active {
     box-shadow: inset 0 4px 0 var(--primary-accent);
   }
@@ -141,6 +145,10 @@
   }
 
   .sidebar-footer {
+    display: none;
+  }
+
+  .sidebar-logout {
     display: none;
   }
 }

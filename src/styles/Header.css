@@ -143,6 +143,7 @@
   }
 
   .header-container {
+    display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
     text-align: center;
@@ -165,6 +166,7 @@
     width: 100%;
     text-align: center;
     margin-left: 0;
+    justify-content: center;
   }
 
   .tagline {

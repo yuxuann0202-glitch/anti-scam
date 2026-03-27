@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './styles/variables.css';
 import './App.css';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -11,6 +11,7 @@ import LinkInput from './components/LinkInput';
 import ImageUpload from './components/ImageUpload';
 import ResultDisplay from './components/ResultDisplay';
 import History from './components/History';
+import Onboarding from './components/Onboarding';
 import translations from './translations';
 import './styles/Auth.css';
 
@@ -20,6 +21,16 @@ function AppContent() {
   const [scanResult, setScanResult] = useState(null);
   const [scanHistory, setScanHistory] = useState([]);
   const [lang, setLang] = useState('en');
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      const key = `hasSeenOnboarding_${user.uid}`;
+      if (!localStorage.getItem(key)) {
+        setShowOnboarding(true);
+      }
+    }
+  }, [user]);
 
   const t = (key, params = {}) => {
     let str = translations[lang]?.[key] || translations['en'][key] || key;
@@ -52,6 +63,14 @@ function AppContent() {
 
   return (
     <div className="app">
+      {showOnboarding && (
+        <Onboarding
+          t={t}
+          userUid={user.uid}
+          onDone={() => setShowOnboarding(false)}
+          onNavigate={(page) => { setActivePage(page); setShowOnboarding(false); }}
+        />
+      )}
       <Header
         onLogoClick={() => setActivePage('dashboard')}
         currentLang={lang}

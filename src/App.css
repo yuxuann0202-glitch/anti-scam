@@ -40,12 +40,14 @@
 @media (max-width: 768px) {
   .app-main {
     padding: var(--spacing-md);
+    padding-bottom: 72px; /* clear the 60px fixed bottom nav */
   }
 }
 
 @media (max-width: 480px) {
   .app-main {
     padding: var(--spacing-sm);
+    padding-bottom: 72px;
   }
 }
 

@@ -2,48 +2,47 @@
 const scamDatabase = {
   //  OFFICIAL WHITELIST
   officialWhitelist: [
-    // Official Maybank
-    { pattern: /maybank2u\.com\.my|maybank\.com\.my/, type: 'Maybank Official', risk: 'Low' },
-    { pattern: /maybank.*malaysia|maybank2u.*secure|official.*maybank/i, type: 'Maybank Official', risk: 'Low' },
-    
+    // Official Maybank — anchored with (?:\/|$) so fake.maybank2u.com.my.evil.net cannot match
+    { pattern: /(?:^|\/)(?:www\.)?maybank2u\.com\.my(?:\/|$)|(?:^|\/)(?:www\.)?maybank\.com\.my(?:\/|$)/, type: 'Maybank Official', risk: 'Low' },
+
     // Official CIMB
-    { pattern: /cimb\.com\.my|cimb\.co\.id|cimbclicks\.com/i, type: 'CIMB Official', risk: 'Low' },
-    
+    { pattern: /(?:^|\/)(?:www\.)?cimb\.com\.my(?:\/|$)|(?:^|\/)(?:www\.)?cimb\.co\.id(?:\/|$)|(?:^|\/)(?:www\.)?cimbclicks\.com(?:\/|$)/i, type: 'CIMB Official', risk: 'Low' },
+
     // Official Public Bank
-    { pattern: /publicbank\.com\.my/, type: 'Public Bank Official', risk: 'Low' },
-    
+    { pattern: /(?:^|\/)(?:www\.)?publicbank\.com\.my(?:\/|$)/, type: 'Public Bank Official', risk: 'Low' },
+
     // Official HSBC
-    { pattern: /hsbc\.com\.my/, type: 'HSBC Official', risk: 'Low' },
-    
+    { pattern: /(?:^|\/)(?:www\.)?hsbc\.com\.my(?:\/|$)/, type: 'HSBC Official', risk: 'Low' },
+
     // Official RHB
-    { pattern: /rhb\.com\.my/, type: 'RHB Official', risk: 'Low' },
-    
+    { pattern: /(?:^|\/)(?:www\.)?rhb\.com\.my(?:\/|$)/, type: 'RHB Official', risk: 'Low' },
+
     // Official AmBank
-    { pattern: /ambank\.com\.my/, type: 'AmBank Official', risk: 'Low' },
-    
+    { pattern: /(?:^|\/)(?:www\.)?ambank\.com\.my(?:\/|$)/, type: 'AmBank Official', risk: 'Low' },
+
     // Official Affin
-    { pattern: /affin\.com\.my/, type: 'Affin Official', risk: 'Low' },
-    
+    { pattern: /(?:^|\/)(?:www\.)?affin\.com\.my(?:\/|$)/, type: 'Affin Official', risk: 'Low' },
+
     // Official UOB
-    { pattern: /uob\.com\.my/, type: 'UOB Official', risk: 'Low' },
-    
+    { pattern: /(?:^|\/)(?:www\.)?uob\.com\.my(?:\/|$)/, type: 'UOB Official', risk: 'Low' },
+
     // Official Bank Islam
-    { pattern: /bankislam\.com\.my/, type: 'Bank Islam Official', risk: 'Low' },
-    
+    { pattern: /(?:^|\/)(?:www\.)?bankislam\.com\.my(?:\/|$)/, type: 'Bank Islam Official', risk: 'Low' },
+
     // Official Postal Services
-    { pattern: /pos\.com\.my|poslaju\.com\.my/, type: 'Pos Malaysia Official', risk: 'Low' },
-    
+    { pattern: /(?:^|\/)(?:www\.)?pos\.com\.my(?:\/|$)|(?:^|\/)(?:www\.)?poslaju\.com\.my(?:\/|$)/, type: 'Pos Malaysia Official', risk: 'Low' },
+
     // Official Delivery Services
-    { pattern: /dhl\.com\.my|fedex\.com\.my|ups\.com\.my/, type: 'Official Delivery', risk: 'Low' },
-    
+    { pattern: /(?:^|\/)(?:www\.)?dhl\.com(?:\.my)?(?:\/|$)|(?:^|\/)(?:www\.)?fedex\.com(?:\.my)?(?:\/|$)|(?:^|\/)(?:www\.)?ups\.com(?:\.my)?(?:\/|$)/, type: 'Official Delivery', risk: 'Low' },
+
     // Official Ride Services
-    { pattern: /grab\.com\.my|grab\.co/, type: 'Grab Official', risk: 'Low' },
-    
+    { pattern: /(?:^|\/)(?:www\.)?grab\.com(?:\.my)?(?:\/|$)/, type: 'Grab Official', risk: 'Low' },
+
     // Official E-commerce
-    { pattern: /shopee\.com\.my|lazada\.com\.my/, type: 'Official E-commerce', risk: 'Low' },
-    
+    { pattern: /(?:^|\/)(?:www\.)?shopee\.com(?:\.my)?(?:\/|$)|(?:^|\/)(?:www\.)?lazada\.com(?:\.my)?(?:\/|$)/, type: 'Official E-commerce', risk: 'Low' },
+
     // Official Government
-    { pattern: /lhdn\.gov\.my|pdrm\.gov\.my|bnm\.gov\.my|bnm\.my/, type: 'Government Official', risk: 'Low' },
+    { pattern: /(?:^|\/)(?:www\.)?lhdn\.gov\.my(?:\/|$)|(?:^|\/)(?:www\.)?pdrm\.gov\.my(?:\/|$)|(?:^|\/)(?:www\.)?bnm\.gov\.my(?:\/|$)|(?:^|\/)(?:www\.)?bnm\.my(?:\/|$)/, type: 'Government Official', risk: 'Low' },
     
     // Personal/Natural Messages
     { pattern: /^(hi|hello|hey|good morning|how are you|see you|meeting|appointment|order|shipped|delivery|appointment confirmed)/i, type: 'Personal Message', risk: 'Low' },
@@ -53,9 +52,11 @@ const scamDatabase = {
   //  PARCEL SCAMS 
   parcelScams: [
     // ONLY match FAKE domain patterns + suspicious content together
-    { pattern: /dhl.*\.(tk|ml|ga|cf|xyz|info|biz|site).*(?:verify|confirm|payment|urgent)/i, type: 'Parcel Scam', risk: 'High' },
-    { pattern: /poslaju.*\.(tk|ml|ga|cf).*(?:verify|payment)/i, type: 'Parcel Scam', risk: 'High' },
-    { pattern: /fedex.*\.(tk|ml|ga).*(?:confirm|verify)/i, type: 'Parcel Scam', risk: 'High' },
+    { pattern: /dhl.*\.(tk|ml|ga|cf|xyz|info|biz|site|top|online|click|shop|store|live|world|today|icu|vip).*(?:verify|confirm|payment|urgent)/i, type: 'Parcel Scam', risk: 'High' },
+    { pattern: /poslaju.*\.(tk|ml|ga|cf|xyz|info|biz|site|top|online|click|shop|store|live|world|today|icu|vip)/i, type: 'Parcel Scam', risk: 'High' },
+    { pattern: /fedex.*\.(tk|ml|ga|cf|xyz|info|biz|site|top|online).*(?:confirm|verify)/i, type: 'Parcel Scam', risk: 'High' },
+    { pattern: /jnt.*\.(tk|ml|ga|cf|xyz|info|biz|site|top|online)/i, type: 'Parcel Scam', risk: 'High' },
+    { pattern: /ninjavan.*\.(tk|ml|ga|cf|xyz|info|biz|site|top|online)/i, type: 'Parcel Scam', risk: 'High' },
     // Fake delivery services
     { pattern: /parcel.*pending.*(?:pay|click|verify|confirm)/i, type: 'Parcel Scam', risk: 'High' },
     { pattern: /delivery.*failed.*(?:update.*address|confirm|payment)/i, type: 'Parcel Scam', risk: 'High' },
