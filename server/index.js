@@ -11,11 +11,13 @@ dotenv.config();
 
 // Reconstruct a valid PEM private key regardless of how it was pasted into env vars
 function buildPrivateKey(raw) {
-  const normalized = raw.replace(/\\n/g, '\n').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-  const base64 = normalized
-    .replace(/-----BEGIN PRIVATE KEY-----/g, '')
-    .replace(/-----END PRIVATE KEY-----/g, '')
-    .replace(/\s+/g, '');
+  // Collapse ALL whitespace (real newlines, literal \n, spaces) into single spaces
+  const oneLine = raw.replace(/\\n/g, ' ').replace(/[\r\n\t ]+/g, ' ').trim();
+  // Flexible regex — matches even if header was split across lines
+  const match = oneLine.match(/-----\s*BEGIN\s+PRIVATE\s+KEY\s*-----([\s\S]*?)-----\s*END\s+PRIVATE\s+KEY\s*-----/i);
+  const base64 = match
+    ? match[1].replace(/\s+/g, '')
+    : oneLine.replace(/-----[^-]*-----/g, '').replace(/\s+/g, '');
   const lines = base64.match(/.{1,64}/g) || [];
   return `-----BEGIN PRIVATE KEY-----\n${lines.join('\n')}\n-----END PRIVATE KEY-----\n`;
 }
