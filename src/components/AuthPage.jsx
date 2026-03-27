@@ -72,12 +72,15 @@ function AuthPage({ t }) {
   };
 
   const handleGoogle = async () => {
+    if (googleLoading) return;
     setGoogleLoading(true);
     setAuthError('');
     try {
       await loginWithGoogle();
     } catch (err) {
-      if (err.code !== 'auth/popup-closed-by-user') {
+      // Both codes mean user dismissed or cancelled the popup — not an error
+      const dismissed = ['auth/popup-closed-by-user', 'auth/cancelled-popup-request'];
+      if (!dismissed.includes(err.code)) {
         setAuthError(getFriendlyError(err.code));
       }
     } finally {
