@@ -9,9 +9,18 @@ const scamDatabase = require('./scam_database');
 
 dotenv.config();
 
-// Load Firebase credentials from env variable (production) or local file (development)
-const serviceAccount = process.env.FIREBASE_KEY
-  ? JSON.parse(process.env.FIREBASE_KEY.replace(/\\n/g, '\n'))
+// Load Firebase credentials from individual env variables (production) or local file (development)
+const serviceAccount = process.env.FIREBASE_PROJECT_ID
+  ? {
+      type: 'service_account',
+      project_id: process.env.FIREBASE_PROJECT_ID,
+      private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
+      private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      client_email: process.env.FIREBASE_CLIENT_EMAIL,
+      client_id: process.env.FIREBASE_CLIENT_ID,
+      auth_uri: 'https://accounts.google.com/o/oauth2/auth',
+      token_uri: 'https://oauth2.googleapis.com/token',
+    }
   : require('../firebaseKey.json');
 
 // Initialize Firebase
