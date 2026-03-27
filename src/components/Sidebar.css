@@ -1,0 +1,146 @@
+.sidebar {
+  width: 70px;
+  background: var(--primary-dark);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 80px); 
+  position: sticky;
+  top: 80px;
+  border-right: 1px solid rgba(255, 242, 254, 0.1);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  z-index: 100;
+}
+
+.sidebar:hover {
+  width: 260px;
+}
+
+.sidebar-nav {
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 14px 15px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: #a8b0be;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
+.sidebar-item.active {
+  background: rgba(212, 66, 107, 0.1);
+  color: var(--primary-accent);
+  box-shadow: inset 4px 0 0 var(--primary-accent);
+}
+
+.sidebar-icon {
+  font-size: 1.2rem;
+  min-width: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.sidebar-label {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar:hover .sidebar-label {
+  opacity: 1;
+}
+
+.sidebar-footer {
+  padding: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.protection-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: #6b7684;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-indicator.online {
+  background: #2d7a5c;
+  box-shadow: 0 0 8px #2d7a5c;
+  animation: pulseStatus 2s infinite;
+}
+
+@keyframes pulseStatus {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 0.6; }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    flex-direction: row;
+    top: auto;
+    z-index: 1000;
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    padding: 0;
+    justify-content: space-around;
+    gap: 0;
+  }
+
+  .sidebar-item {
+    flex-direction: column;
+    padding: 8px;
+    gap: 4px;
+    font-size: 0.7rem;
+    border-radius: 0;
+  }
+
+  .sidebar-item.active {
+    box-shadow: inset 0 4px 0 var(--primary-accent);
+  }
+
+  .sidebar-icon {
+    font-size: 1rem;
+  }
+
+  .sidebar-footer {
+    display: none;
+  }
+}

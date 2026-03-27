@@ -1,0 +1,124 @@
+.dashboard {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 10px;
+}
+
+.dashboard-header {
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.dashboard-header h1 {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  color: var(--primary-dark);
+  margin-bottom: 12px;
+}
+
+.dashboard-subtitle {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin: 0;
+  opacity: 0.8;
+}
+
+.scam-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.scam-card {
+  background: var(--bg-white);
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  transition: all 0.3s ease;
+  border-top: 4px solid var(--accent);
+  position: relative;
+  overflow: hidden;
+}
+
+.scam-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lg);
+}
+
+.scam-card-icon {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+}
+
+.scam-card h3 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--primary-dark);
+  margin-bottom: 12px;
+}
+
+.scam-card p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.risk-tag {
+  font-size: 0.75rem;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-dark);
+}
+
+.dashboard-warning {
+  margin-top: 50px;
+  background: linear-gradient(135deg, rgba(212, 66, 107, 0.08) 0%, rgba(232, 160, 40, 0.08) 100%);
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  border-left: 4px solid var(--primary-accent);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.warning-icon-box {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  background: var(--primary-accent);
+  color: white;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(212, 66, 107, 0.3);
+}
+
+.warning-icon {
+  font-size: 2rem;
+}
+
+.warning-text {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-dark);
+}
+
+.warning-text strong {
+  display: block;
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+
+@media (max-width: 768px) {
+  .dashboard-header h1 {
+    font-size: 1.8rem;
+  }
+}
