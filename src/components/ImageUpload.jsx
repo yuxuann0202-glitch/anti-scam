@@ -42,7 +42,8 @@ function ImageUpload({ onScan, t }) {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/scan-image', {
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/api/scan-image`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

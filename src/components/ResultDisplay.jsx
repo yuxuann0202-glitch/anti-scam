@@ -30,7 +30,8 @@ function ResultDisplay({ result, onBack, t, lang, onUpdateResult, user }) {
         link:    { url: result.content, lang, aiModel: 'deep' },
         image:   { image: result.image, lang, aiModel: 'deep' }
       };
-      const response = await fetch(`http://localhost:5000${endpointMap[result.type]}`, {
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}${endpointMap[result.type]}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(bodyMap[result.type])
@@ -84,7 +85,8 @@ function ResultDisplay({ result, onBack, t, lang, onUpdateResult, user }) {
     const translateResult = async () => {
       setIsTranslating(true);
       try {
-        const response = await fetch('http://localhost:5000/api/translate-result', {
+        const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        const response = await fetch(`${API_URL}/api/translate-result`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -115,7 +117,8 @@ function ResultDisplay({ result, onBack, t, lang, onUpdateResult, user }) {
     setIsSaving(true);
     setSaveMessage('');
     try {
-      const response = await fetch('http://localhost:5000/api/save-report', {
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/api/save-report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
