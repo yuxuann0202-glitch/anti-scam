@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Malaysian scam detection web app that analyzes messages, URLs, and images for fraudulent content. Uses Google Gemini AI combined with rule-based pattern matching and emotional manipulation scoring to achieve multi-signal detection.
+Malaysian scam detection web app that analyzes messages, URLs, and images for fraudulent content. Uses Google Gemini AI (messages/translation) and OpenAI GPT-4o mini (links/images) combined with rule-based pattern matching and emotional manipulation scoring.
 
 ## Development Commands
 
@@ -25,42 +25,46 @@ npm run build
 
 **Test:**
 ```bash
-npm test              # watch mode
-npm test -- --watchAll=false  # single run
+npm test -- --watchAll=false
 ```
 
 ## Architecture
 
 ```
-Frontend (React 18, CRA)     →    Backend (Express)
-  src/App.jsx (routing)      →    server/index.js (1,253 lines)
-  src/translations.js        →    server/scam_database.js
-  src/components/            →    Firebase Firestore + Gemini AI
+Frontend (React 18, CRA)          Backend (Express, port 5000)
+  src/App.jsx                  →    server/index.js
+  src/context/AuthContext.jsx  →    Firebase Auth + Firestore
+  src/translations.js          →    server/scam_database.js
+  src/firebase.js              →    Gemini AI + OpenAI
 ```
 
-### Frontend
+### Auth Flow
 
-- **`src/App.jsx`** — top-level state, page routing (Dashboard/Message/Link/Image/History), language state
-- **`src/translations.js`** — all UI strings in 4 languages (EN, MS, ZH, TA); add new strings here when adding UI text
-- **`src/components/ResultDisplay.jsx`** — largest component (15KB); renders verdict, confidence score, risk indicators, and advice
-- **`src/components/AIModelSelector.jsx`** — dropdown for Auto/Fast/Deep scan modes
+Firebase Auth (email/password + Google OAuth) via `src/context/AuthContext.jsx`. `App.jsx` gates all content behind `useAuth()` — unauthenticated users see `AuthPage`. On first login, `hasSeenOnboarding_{uid}` localStorage key triggers the `Onboarding` modal.
 
-### Backend
+### Frontend State
 
-- **`server/index.js`** — all 11 API endpoints + the full multi-stage detection pipeline
-- **`server/scam_database.js`** — 14 scam category patterns (parcel, bank, government, investment, romance, job, lottery, phishing, gambling, health, rental, travel, e-commerce, whitelist)
+All state lives in `App.jsx`: `activePage`, `scanResult`, `scanHistory`, `lang`, `showOnboarding`. The `t(key, params)` helper reads from `src/translations.js`. `handleScan()` receives results from any input component, stamps a timestamp, and pushes to history + navigates to results page.
 
-### Detection Pipeline (server/index.js)
+### Backend Detection Pipeline (`server/index.js`)
 
-Each scan runs through these stages in order:
-1. Whitelist check (50+ official Malaysian domains/organizations)
-2. Pattern match against scam database categories
-3. Domain reputation via AbuseIPDB API (falls back to local rules on failure)
-4. Rule-based scoring (0–100 point scale)
-5. Emotional manipulation scoring (fear, greed, urgency, desperation triggers)
-6. Malaysian phone number validation
-7. Gemini AI analysis (mode: auto/fast/deep)
-8. Confidence boosting from combined signals
+Each scan runs these stages in order:
+1. Whitelist check (`checkOfficalWhitelist`) — 50+ official Malaysian domains
+2. Pattern match (`checkAgainstDatabase`) — 14 scam categories in `scam_database.js`
+3. Domain reputation via AbuseIPDB API (falls back to local rules)
+4. Rule-based scoring (`calculateScamScore`) — 0–100 point scale, 15 indicator types
+5. Emotional manipulation scoring (`analyzeEmotionalManipulation`) — fear/greed/urgency/desperation
+6. Malaysian phone number validation (`analyzePhoneNumbers`)
+7. URL extraction from messages (`extractUrlsFromMessage`) + quick scan (`quickScanUrl`)
+8. AI analysis — **Gemini** for messages/translation, **OpenAI GPT-4o mini** for links/images (with Gemini fallback)
+9. Confidence boosting from combined signals
+
+### AI Routing
+
+- **Messages**: Always Gemini (`gemini-2.5-flash`)
+- **Links**: OpenAI GPT-4o mini → falls back to Gemini on error
+- **Images**: OpenAI GPT-4o mini (vision) → falls back to Gemini Vision
+- **Translation**: Always Gemini
 
 ### API Endpoints
 
@@ -70,30 +74,35 @@ All at `http://localhost:5000`:
 |---|---|
 | `POST /api/scan-message` | Analyze SMS/chat message |
 | `POST /api/scan-link` | Analyze URL |
-| `POST /api/scan-image` | Analyze screenshot (Gemini Vision) |
+| `POST /api/scan-image` | Analyze screenshot |
 | `POST /api/translate-result` | Translate results to target language |
 | `POST /api/save-report` | Persist report to Firestore |
 | `POST /api/feedback` | Submit detection feedback |
-| `GET /api/reports` | List all saved reports |
-| `GET /api/statistics` | System stats |
+| `GET /api/reports` | List saved reports |
+| `GET /api/statistics` | Aggregated stats |
 | `GET /api/health` | Health check |
 
 ## Environment Variables
 
-Required in `.env` at project root:
+Local development — `.env` at project root + `firebaseKey.json` (excluded from git):
 
 ```
-GEMINI_API_KEY=...     # Google Gemini AI (used for all AI analysis)
-PORT=5000              # Express server port
-KIMI_API_KEY=...       # Secondary AI key (optional/fallback)
+GEMINI_API_KEY=...
+OPENAI_API_KEY=...
+PORT=5000
 ```
 
-Firebase credentials go in `firebaseKey.json` at project root (excluded from git).
+Production (Render) — Firebase credentials are split into individual env vars instead of a file. `server/index.js` detects `FIREBASE_PROJECT_ID` and builds the credential object; otherwise falls back to `firebaseKey.json`. The `buildPrivateKey()` function at the top of `server/index.js` normalizes the private key regardless of how it was pasted.
+
+## Deployment
+
+- **Frontend**: Netlify — auto-deploys on push to `main`. Config in `netlify.toml` (SPA redirect rule).
+- **Backend**: Render — auto-deploys on push to `main`. Config in `render.yaml` (start: `node server/index.js`, port 10000). Env vars set in Render dashboard.
 
 ## Key Conventions
 
 - **Multi-language**: All user-facing strings must be added to `src/translations.js` for all 4 languages (en, ms, zh, ta). Never hardcode display text in components.
-- **Scan modes**: "auto" selects depth based on risk signals; "fast" = 1-2 sentence analysis; "deep" = full detailed analysis. The mode is passed from frontend to backend in the request body.
-- **Scam database**: When adding new scam patterns, add them to the appropriate category object in `server/scam_database.js`. Pattern entries use regex arrays and keyword arrays.
-- **AI model**: Currently uses `gemini-2.5-flash`. Model name is set in `server/index.js` — search for `generative-ai` initialization.
-- **CORS**: Backend has CORS enabled for all origins in development. Tighten in production.
+- **Scan modes**: "auto" selects depth based on risk signals; "fast" = 1-2 sentence analysis; "deep" = full detailed analysis. Passed as `aiModel` in request body.
+- **Scam database**: Add new patterns to the appropriate category in `server/scam_database.js`. Use anchored regex (`(?:\/|$)`) for domain patterns to prevent false matches.
+- **Brand impersonation**: `quickScanUrl()` in `server/index.js` contains the brand list. Add new brands there — each entry needs a `name` regex and an `official` domain regex.
+- **CSS**: Global design tokens in `src/styles/variables.css`. Component styles are co-located in `src/components/` or `src/styles/`.

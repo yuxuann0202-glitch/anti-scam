@@ -9,32 +9,13 @@ const scamDatabase = require('./scam_database');
 
 dotenv.config();
 
-// Reconstruct a valid PEM private key regardless of how it was pasted into env vars
-function buildPrivateKey(raw) {
-  // Collapse ALL whitespace (real newlines, literal \n, spaces) into single spaces
-  const oneLine = raw.replace(/\\n/g, ' ').replace(/[\r\n\t ]+/g, ' ').trim();
-  // Flexible regex — matches even if header was split across lines
-  const match = oneLine.match(/-----\s*BEGIN\s+PRIVATE\s+KEY\s*-----([\s\S]*?)-----\s*END\s+PRIVATE\s+KEY\s*-----/i);
-  const base64 = match
-    ? match[1].replace(/\s+/g, '')
-    : oneLine.replace(/-----[^-]*-----/g, '').replace(/\s+/g, '');
-  const lines = base64.match(/.{1,64}/g) || [];
-  return `-----BEGIN PRIVATE KEY-----\n${lines.join('\n')}\n-----END PRIVATE KEY-----\n`;
+// Load Firebase credentials — base64-encoded JSON takes priority (most reliable for production)
+let serviceAccount;
+if (process.env.FIREBASE_CREDENTIALS_BASE64) {
+  serviceAccount = JSON.parse(Buffer.from(process.env.FIREBASE_CREDENTIALS_BASE64, 'base64').toString('utf8'));
+} else {
+  serviceAccount = require('../firebaseKey.json');
 }
-
-// Load Firebase credentials from individual env variables (production) or local file (development)
-const serviceAccount = process.env.FIREBASE_PROJECT_ID
-  ? {
-      type: 'service_account',
-      project_id: process.env.FIREBASE_PROJECT_ID,
-      private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
-      private_key: buildPrivateKey(process.env.FIREBASE_PRIVATE_KEY),
-      client_email: process.env.FIREBASE_CLIENT_EMAIL,
-      client_id: process.env.FIREBASE_CLIENT_ID,
-      auth_uri: 'https://accounts.google.com/o/oauth2/auth',
-      token_uri: 'https://oauth2.googleapis.com/token',
-    }
-  : require('../firebaseKey.json');
 
 // Initialize Firebase
 admin.initializeApp({
