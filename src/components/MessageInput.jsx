@@ -3,7 +3,6 @@ import '../styles/InputForm.css';
 
 function MessageInput({ onScan, t }) {
   const [message, setMessage] = useState('');
-  const [extraUrl, setExtraUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -25,12 +24,7 @@ function MessageInput({ onScan, t }) {
       const response = await fetch(`${API_URL}/api/scan-message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message,
-          lang: t('langCode') || 'en',
-          aiModel: 'auto',
-          extraUrl: extraUrl.trim() || undefined
-        })
+        body: JSON.stringify({ message, lang: t('langCode') || 'en', aiModel: 'auto' })
       });
 
       const result = await response.json();
@@ -38,7 +32,6 @@ function MessageInput({ onScan, t }) {
       if (result.success) {
         onScan({ type: 'message', content: message, scanMode: 'auto', ...result.data });
         setMessage('');
-        setExtraUrl('');
       } else {
         setError(result.error || result.details || t('connError'));
       }
@@ -61,7 +54,6 @@ function MessageInput({ onScan, t }) {
 
   return (
     <div className="input-form">
-      {/* Message textarea */}
       <div className="form-group">
         <label htmlFor="message-input">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px', verticalAlign: 'text-bottom' }}>
@@ -76,33 +68,12 @@ function MessageInput({ onScan, t }) {
           onChange={(e) => { setMessage(e.target.value); setError(''); }}
           onKeyPress={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleScan(); } }}
           placeholder={t('placeholderMsg')}
-          rows="7"
+          rows="8"
         />
         {error && <div className="error-message">{error}</div>}
         <div className="character-count">{t('charCount', { count: message.length })}</div>
       </div>
 
-      {/* Optional link field */}
-      <div className="msg-link-field">
-        <div className="msg-link-label">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-          </svg>
-          {t('labelAttachLink')}
-          <span className="msg-link-optional">({t('labelAttachLinkOptional')})</span>
-        </div>
-        <input
-          className="text-input msg-link-input"
-          type="url"
-          value={extraUrl}
-          onChange={(e) => setExtraUrl(e.target.value)}
-          placeholder={t('attachLinkPlaceholder')}
-        />
-        <p className="msg-link-hint">{t('attachLinkHint')}</p>
-      </div>
-
-      {/* Actions */}
       <div className="input-actions" style={{ position: 'relative' }}>
         <button className="btn-secondary" onClick={handlePaste}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
