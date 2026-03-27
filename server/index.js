@@ -7,9 +7,12 @@ const admin = require('firebase-admin');
 const axios = require('axios');
 const scamDatabase = require('./scam_database');
 
-const serviceAccount = require('../firebaseKey.json');
-
 dotenv.config();
+
+// Load Firebase credentials from env variable (production) or local file (development)
+const serviceAccount = process.env.FIREBASE_KEY
+  ? JSON.parse(process.env.FIREBASE_KEY)
+  : require('../firebaseKey.json');
 
 // Initialize Firebase
 admin.initializeApp({
