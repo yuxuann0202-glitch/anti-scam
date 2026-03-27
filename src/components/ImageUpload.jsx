@@ -8,16 +8,6 @@ function ImageUpload({ onScan, t }) {
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Enter' && preview && !isLoading) {
-        handleScan();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [preview, isLoading, handleScan]);
-
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -82,6 +72,16 @@ function ImageUpload({ onScan, t }) {
       setIsLoading(false);
     }
   }, [preview, image, isLoading, onScan, t]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Enter' && preview && !isLoading) {
+        handleScan();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [preview, isLoading, handleScan]);
 
   const handleDrop = (e) => {
     e.preventDefault();
