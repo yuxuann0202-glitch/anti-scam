@@ -11,7 +11,7 @@ dotenv.config();
 
 // Load Firebase credentials from env variable (production) or local file (development)
 const serviceAccount = process.env.FIREBASE_KEY
-  ? JSON.parse(process.env.FIREBASE_KEY)
+  ? JSON.parse(process.env.FIREBASE_KEY.replace(/\\n/g, '\n'))
   : require('../firebaseKey.json');
 
 // Initialize Firebase

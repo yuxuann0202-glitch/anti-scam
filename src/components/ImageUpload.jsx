@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import '../styles/InputForm.css';
 
 function ImageUpload({ onScan, t }) {
@@ -16,7 +16,7 @@ function ImageUpload({ onScan, t }) {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [preview, isLoading]);
+  }, [preview, isLoading, handleScan]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -42,7 +42,7 @@ function ImageUpload({ onScan, t }) {
     reader.readAsDataURL(file);
   };
 
-  const handleScan = async () => {
+  const handleScan = useCallback(async () => {
     if (!preview) {
       setError(t('labelUploadImg'));
       return;
@@ -81,7 +81,7 @@ function ImageUpload({ onScan, t }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [preview, image, isLoading, onScan, t]);
 
   const handleDrop = (e) => {
     e.preventDefault();
