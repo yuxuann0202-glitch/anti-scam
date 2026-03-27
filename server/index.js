@@ -624,6 +624,15 @@ app.post('/api/scan-message', async (req, res) => {
 
     // Extract & quick-scan URLs embedded in the message
     const embeddedUrls = extractUrlsFromMessage(message);
+    // Also include any URL explicitly submitted alongside the message
+    const { aiModel, extraUrl } = req.body;
+    if (extraUrl && extraUrl.trim()) {
+      let normalizedExtra = extraUrl.trim();
+      if (!/^https?:\/\//i.test(normalizedExtra)) normalizedExtra = `https://${normalizedExtra}`;
+      const alreadyFound = embeddedUrls.some(u => u.includes(normalizedExtra) || normalizedExtra.includes(u));
+      if (!alreadyFound) embeddedUrls.unshift(normalizedExtra);
+      embeddedUrls.splice(3); // cap at 3 total
+    }
     let embeddedLinkResults = [];
     if (embeddedUrls.length > 0) {
       console.log(`[URL Extraction] Found ${embeddedUrls.length} URL(s): ${embeddedUrls.join(', ')}`);
@@ -642,7 +651,6 @@ app.post('/api/scan-message', async (req, res) => {
     console.log(`[Emotion Check] Emotional Risk Score: ${emotionalAnalysis.emotionalScore}`);
 
     // Route Request & Explanation Rules
-    const { aiModel } = req.body;
 
     // Auto Mode: smartly selects explanation depth based on content complexity
     const isLongText = message.length > 250;

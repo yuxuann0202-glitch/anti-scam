@@ -125,7 +125,11 @@ const translations = {
     embeddedLinkOfficial: "Official",
     embeddedLinkSafe: "Safe",
     embeddedLinkMedium: "Suspicious",
-    embeddedLinkHigh: "Dangerous"
+    embeddedLinkHigh: "Dangerous",
+    labelAttachLink: "Include a suspicious link",
+    labelAttachLinkOptional: "optional",
+    attachLinkHint: "Scammers often send a link with their message. We'll check both together.",
+    attachLinkPlaceholder: "https://..."
   },
   ms: {
     headerTitle: "Pengesan Scam Malaysia",
@@ -253,7 +257,11 @@ const translations = {
     embeddedLinkOfficial: "Rasmi",
     embeddedLinkSafe: "Selamat",
     embeddedLinkMedium: "Mencurigakan",
-    embeddedLinkHigh: "Berbahaya"
+    embeddedLinkHigh: "Berbahaya",
+    labelAttachLink: "Sertakan pautan mencurigakan",
+    labelAttachLinkOptional: "pilihan",
+    attachLinkHint: "Penipu sering menghantar pautan bersama mesej. Kami akan menyemak kedua-duanya.",
+    attachLinkPlaceholder: "https://..."
   },
   zh: {
     headerTitle: "马来西亚诈骗检测器",
@@ -381,7 +389,11 @@ const translations = {
     embeddedLinkOfficial: "官方",
     embeddedLinkSafe: "安全",
     embeddedLinkMedium: "可疑",
-    embeddedLinkHigh: "危险"
+    embeddedLinkHigh: "危险",
+    labelAttachLink: "附上可疑链接",
+    labelAttachLinkOptional: "可选",
+    attachLinkHint: "诈骗者通常会在消息中附上链接，我们会一起检查两者。",
+    attachLinkPlaceholder: "https://..."
   },
   ta: {
     headerTitle: "மலேசிய மோசடி கண்டறிவி",
@@ -509,7 +521,11 @@ const translations = {
     embeddedLinkOfficial: "அதிகாரப்பூர்வம்",
     embeddedLinkSafe: "பாதுகாப்பானது",
     embeddedLinkMedium: "சந்தேகமான",
-    embeddedLinkHigh: "ஆபத்தான"
+    embeddedLinkHigh: "ஆபத்தான",
+    labelAttachLink: "சந்தேகமான இணைப்பை இணைக்கவும்",
+    labelAttachLinkOptional: "விருப்பமான",
+    attachLinkHint: "மோசடியாளர்கள் பொதுவாக செய்தியுடன் இணைப்பை அனுப்புவார்கள். இரண்டையும் சேர்த்து சோதிப்போம்.",
+    attachLinkPlaceholder: "https://..."
   }
 };
 

@@ -156,6 +156,43 @@
   background: darken(#d4426b, 10%);
 }
 
+/* Optional link field inside message input */
+.msg-link-field {
+  margin-bottom: var(--spacing-lg);
+  padding: 14px 16px;
+  background: rgba(212, 66, 107, 0.03);
+  border: 1.5px dashed var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.msg-link-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+
+.msg-link-optional {
+  font-weight: 400;
+  color: var(--text-light);
+  font-size: 0.8rem;
+}
+
+.msg-link-input {
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+}
+
+.msg-link-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-light);
+  line-height: 1.45;
+}
+
 /* Buttons */
 .input-actions {
   display: flex;

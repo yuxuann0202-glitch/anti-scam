@@ -12,12 +12,12 @@ function ResultDisplay({ result, onBack, t, lang, onUpdateResult, user }) {
   const { isScam, riskLevel, confidence = 0, whitelistMatch, type: resultType } = result;
   const isUncertain = confidence < 80 && !result.isDeepScanned;
 
-  // Color theme based on verdict + risk level
+  // Color theme — light design system colors
   const theme = isScam
     ? riskLevel === 'Medium'
-      ? { color: '#ffb020', glow: 'rgba(255,176,32,0.25)', bg: 'rgba(255,176,32,0.1)', dim: 'rgba(255,176,32,0.15)' }
-      : { color: '#ff3b5c', glow: 'rgba(255,59,92,0.25)', bg: 'rgba(255,59,92,0.1)', dim: 'rgba(255,59,92,0.15)' }
-    : { color: '#00d4aa', glow: 'rgba(0,212,170,0.25)', bg: 'rgba(0,212,170,0.1)', dim: 'rgba(0,212,170,0.15)' };
+      ? { color: '#e8a028', bg: 'rgba(232,160,40,0.07)', dim: 'rgba(232,160,40,0.14)' }
+      : { color: '#d4426b', bg: 'rgba(212,66,107,0.06)', dim: 'rgba(212,66,107,0.12)' }
+    : { color: '#2d7a5c', bg: 'rgba(45,122,92,0.06)', dim: 'rgba(45,122,92,0.12)' };
 
   const ringOffset = RING_C * (1 - confidence / 100);
 
@@ -146,7 +146,6 @@ function ResultDisplay({ result, onBack, t, lang, onUpdateResult, user }) {
 
   return (
     <div className="result-container">
-    <div className="rd-inner">
       {/* ── Nav ── */}
       <div className="rd-nav">
         <button className="back-button" onClick={onBack}>
@@ -169,26 +168,23 @@ function ResultDisplay({ result, onBack, t, lang, onUpdateResult, user }) {
       </div>
 
       {/* ── Hero Verdict ── */}
-      <div
-        className="rd-hero"
-        style={{ '--theme-color': theme.color, '--theme-glow': theme.glow, '--theme-bg': theme.bg }}
-      >
+      <div className="rd-hero" style={{ '--theme-color': theme.color, '--theme-bg': theme.bg }}>
         <div className="rd-hero-left">
-          <div className="rd-verdict-icon" style={{ background: theme.bg, boxShadow: `0 0 32px ${theme.glow}` }}>
+          <div className="rd-verdict-icon" style={{ background: theme.bg }}>
             {isScam ? (
-              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke={theme.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={theme.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                 <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
               </svg>
             ) : (
-              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke={theme.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={theme.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                 <polyline points="9 12 11 14 15 10"/>
               </svg>
             )}
           </div>
           <div className="rd-verdict-body">
-            <h1 className="rd-verdict-title" style={{ color: theme.color }}>
+            <h1 className="rd-verdict-title">
               {isScam ? t('verdictScamTitle') : t('verdictSafeTitle')}
             </h1>
             <div className="rd-verdict-meta">
@@ -202,22 +198,22 @@ function ResultDisplay({ result, onBack, t, lang, onUpdateResult, user }) {
           </div>
         </div>
 
-        {/* Confidence ring */}
+        {/* Confidence ring — light theme */}
         <div className="rd-ring-wrap">
-          <svg className="rd-ring" width="118" height="118" viewBox="0 0 120 120">
-            <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="7"/>
+          <svg className="rd-ring" width="110" height="110" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(0,0,0,0.07)" strokeWidth="7"/>
             <circle
               cx="60" cy="60" r="54" fill="none"
               stroke={theme.color} strokeWidth="7" strokeLinecap="round"
               strokeDasharray={RING_C} strokeDashoffset={ringOffset}
               className="rd-ring-progress"
             />
-            <text x="60" y="53" textAnchor="middle" fill={theme.color}
-              style={{ fontSize: '22px', fontWeight: 800, fontFamily: 'Syne, sans-serif' }}>
+            <text x="60" y="55" textAnchor="middle" fill={theme.color}
+              style={{ fontSize: '22px', fontWeight: 800, fontFamily: 'Georgia, serif' }}>
               {confidence}%
             </text>
-            <text x="60" y="73" textAnchor="middle" fill="rgba(240,244,255,0.45)"
-              style={{ fontSize: '13px', fontFamily: 'DM Sans, sans-serif' }}>
+            <text x="60" y="73" textAnchor="middle" fill="#6b7684"
+              style={{ fontSize: '12px', fontFamily: 'Segoe UI, sans-serif' }}>
               {t('confidenceLabel')}
             </text>
           </svg>
@@ -227,7 +223,7 @@ function ResultDisplay({ result, onBack, t, lang, onUpdateResult, user }) {
       {/* ── What we found ── */}
       <div className="rd-card rd-card--anim-1">
         <div className="rd-card-header">
-          <div className="rd-card-icon" style={{ background: theme.bg, color: theme.color }}>
+          <div className="rd-card-icon" style={{ background: theme.bg, color: theme.color, border: `1px solid ${theme.color}30` }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
             </svg>
@@ -255,7 +251,7 @@ function ResultDisplay({ result, onBack, t, lang, onUpdateResult, user }) {
       {resultType === 'message' && result.embeddedLinks && result.embeddedLinks.length > 0 && (
         <div className="rd-card rd-card--anim-2">
           <div className="rd-card-header">
-            <div className="rd-card-icon" style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(240,244,255,0.6)' }}>
+            <div className="rd-card-icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
                 <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
@@ -265,19 +261,19 @@ function ResultDisplay({ result, onBack, t, lang, onUpdateResult, user }) {
           </div>
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {result.embeddedLinks.map((link, i) => {
-              const riskColor = link.isWhitelisted ? '#00d4aa' : link.riskLevel === 'High' ? '#ff3b5c' : link.riskLevel === 'Medium' ? '#ffb020' : '#00d4aa';
+              const riskColor = link.isWhitelisted ? '#2d7a5c' : link.riskLevel === 'High' ? '#d4426b' : link.riskLevel === 'Medium' ? '#e8a028' : '#2d7a5c';
               const riskLabel = link.isWhitelisted ? t('embeddedLinkOfficial') : link.riskLevel === 'High' ? t('embeddedLinkHigh') : link.riskLevel === 'Medium' ? t('embeddedLinkMedium') : t('embeddedLinkSafe');
-              const displayUrl = link.url.length > 45 ? link.url.substring(0, 45) + '…' : link.url;
+              const displayUrl = link.url.length > 48 ? link.url.substring(0, 48) + '…' : link.url;
               return (
-                <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: '8px', borderLeft: `3px solid ${riskColor}` }}>
+                <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: 'var(--bg-light)', borderRadius: '8px', border: '1.5px solid var(--border-color)', borderLeft: `3px solid ${riskColor}` }}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={riskColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
                     {link.isScam && !link.isWhitelisted
                       ? <><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>
                       : <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></>
                     }
                   </svg>
-                  <span style={{ flex: 1, fontSize: '12px', color: 'rgba(240,244,255,0.7)', fontFamily: 'monospace', wordBreak: 'break-all' }}>{displayUrl}</span>
-                  <span style={{ flexShrink: 0, fontSize: '11px', fontWeight: 700, color: riskColor, background: `${riskColor}18`, padding: '3px 8px', borderRadius: '4px', letterSpacing: '0.5px' }}>{riskLabel}</span>
+                  <span style={{ flex: 1, fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'monospace', wordBreak: 'break-all' }}>{displayUrl}</span>
+                  <span style={{ flexShrink: 0, fontSize: '11px', fontWeight: 700, color: riskColor, background: `${riskColor}14`, padding: '3px 9px', borderRadius: '4px' }}>{riskLabel}</span>
                 </li>
               );
             })}
@@ -289,7 +285,7 @@ function ResultDisplay({ result, onBack, t, lang, onUpdateResult, user }) {
       {displayData.advice && displayData.advice.length > 0 && (
         <div className="rd-card rd-card--anim-2">
           <div className="rd-card-header">
-            <div className="rd-card-icon" style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(240,244,255,0.6)' }}>
+            <div className="rd-card-icon" style={{}}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14 9V5a2 2 0 0 0-2-2l-3.5 4.5V17c1.5 0 3-1.5 5-1.5H19a2 2 0 0 0 2-2V13a2 2 0 0 0-2-2h-3.5"/><path d="M5 21V12a2 2 0 0 1 2-2h1.5l0 11"/>
               </svg>
@@ -322,7 +318,7 @@ function ResultDisplay({ result, onBack, t, lang, onUpdateResult, user }) {
       {/* ── Stay safe out there ── */}
       <div className="rd-card rd-card--anim-3">
         <div className="rd-card-header">
-          <div className="rd-card-icon" style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(240,244,255,0.6)' }}>
+          <div className="rd-card-icon" style={{}}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
             </svg>
@@ -435,7 +431,6 @@ function ResultDisplay({ result, onBack, t, lang, onUpdateResult, user }) {
           {t('btnScanAgain')}
         </button>
       </div>
-    </div>
     </div>
   );
 }
