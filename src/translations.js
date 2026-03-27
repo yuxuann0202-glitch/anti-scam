@@ -120,7 +120,12 @@ const translations = {
     authConfirmPassword: "Confirm Password",
     authConfirmPasswordPlaceholder: "Re-enter your password",
     authPasswordMismatch: "Passwords do not match",
-    navLogout: "Sign Out"
+    navLogout: "Sign Out",
+    embeddedLinksTitle: "Links detected inside message",
+    embeddedLinkOfficial: "Official",
+    embeddedLinkSafe: "Safe",
+    embeddedLinkMedium: "Suspicious",
+    embeddedLinkHigh: "Dangerous"
   },
   ms: {
     headerTitle: "Pengesan Scam Malaysia",
@@ -243,7 +248,12 @@ const translations = {
     authConfirmPassword: "Sahkan Kata Laluan",
     authConfirmPasswordPlaceholder: "Masukkan semula kata laluan anda",
     authPasswordMismatch: "Kata laluan tidak sepadan",
-    navLogout: "Log Keluar"
+    navLogout: "Log Keluar",
+    embeddedLinksTitle: "Pautan dikesan dalam mesej",
+    embeddedLinkOfficial: "Rasmi",
+    embeddedLinkSafe: "Selamat",
+    embeddedLinkMedium: "Mencurigakan",
+    embeddedLinkHigh: "Berbahaya"
   },
   zh: {
     headerTitle: "马来西亚诈骗检测器",
@@ -366,7 +376,12 @@ const translations = {
     authConfirmPassword: "确认密码",
     authConfirmPasswordPlaceholder: "重新输入您的密码",
     authPasswordMismatch: "两次输入的密码不一致",
-    navLogout: "退出登录"
+    navLogout: "退出登录",
+    embeddedLinksTitle: "消息中检测到的链接",
+    embeddedLinkOfficial: "官方",
+    embeddedLinkSafe: "安全",
+    embeddedLinkMedium: "可疑",
+    embeddedLinkHigh: "危险"
   },
   ta: {
     headerTitle: "மலேசிய மோசடி கண்டறிவி",
@@ -489,7 +504,12 @@ const translations = {
     authConfirmPassword: "கடவுச்சொல்லை உறுதிப்படுத்தவும்",
     authConfirmPasswordPlaceholder: "உங்கள் கடவுச்சொல்லை மீண்டும் உள்ளிடவும்",
     authPasswordMismatch: "கடவுச்சொற்கள் பொருந்தவில்லை",
-    navLogout: "வெளியேறு"
+    navLogout: "வெளியேறு",
+    embeddedLinksTitle: "செய்தியில் இணைப்புகள் கண்டறியப்பட்டன",
+    embeddedLinkOfficial: "அதிகாரப்பூர்வம்",
+    embeddedLinkSafe: "பாதுகாப்பானது",
+    embeddedLinkMedium: "சந்தேகமான",
+    embeddedLinkHigh: "ஆபத்தான"
   }
 };
 

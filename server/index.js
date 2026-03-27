@@ -263,7 +263,56 @@ const analyzePhoneNumbers = (message) => {
   return analysis;
 };
 
-//  BUILT-IN EMOTIONAL MANIPULATION ANALYSIS 
+// URL EXTRACTOR — pulls all http/https/www links from a message (max 3)
+const extractUrlsFromMessage = (message) => {
+  const urlRegex = /https?:\/\/[^\s<>"{}|\\^`[\]'"]+|www\.[^\s<>"{}|\\^`[\]'"]+/gi;
+  const matches = message.match(urlRegex) || [];
+  return [...new Set(matches)].slice(0, 3);
+};
+
+// QUICK URL SCANNER — rule-based only, no AI, used inside message scan
+const quickScanUrl = async (rawUrl) => {
+  let url = rawUrl.trim();
+  if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
+  try { new URL(url); } catch { return null; }
+
+  const whitelistCheck = checkOfficalWhitelist(url);
+  if (whitelistCheck.isWhitelisted) {
+    return { url: rawUrl, isWhitelisted: true, whitelistType: whitelistCheck.type, riskLevel: 'Low', isScam: false };
+  }
+
+  const [reputation, dbMatches] = await Promise.all([
+    checkDomainReputation(url),
+    Promise.resolve(checkAgainstDatabase(url))
+  ]);
+
+  const hostname = (() => { try { return new URL(url).hostname; } catch { return ''; } })();
+  const isSuspiciousTLD = /\.(tk|ml|ga|cf|gq)$/i.test(hostname);
+  const isShortened = /bit\.ly|tinyurl|short\.link|goo\.gl|ow\.ly|is\.gd|adf\.ly/i.test(url);
+
+  let riskLevel = 'Low';
+  let isScam = false;
+
+  if (reputation.isBlacklisted || dbMatches.length > 0 || isSuspiciousTLD) {
+    riskLevel = 'High'; isScam = true;
+  } else if (reputation.abuseScore > 30 || isShortened) {
+    riskLevel = 'Medium'; isScam = true;
+  }
+
+  return {
+    url: rawUrl,
+    isWhitelisted: false,
+    domain: reputation.domain,
+    riskLevel,
+    isScam,
+    isShortened,
+    isSuspiciousTLD,
+    dbMatches: dbMatches.length,
+    abuseScore: reputation.abuseScore
+  };
+};
+
+//  BUILT-IN EMOTIONAL MANIPULATION ANALYSIS
 const analyzeEmotionalManipulation = (message) => {
   let emotionalScore = 0;
   const triggers = {};
@@ -573,6 +622,21 @@ app.post('/api/scan-message', async (req, res) => {
     const phoneAnalysis = analyzePhoneNumbers(message);
     console.log(`[Phone Check] Found ${phoneAnalysis.length} phone numbers`);
 
+    // Extract & quick-scan URLs embedded in the message
+    const embeddedUrls = extractUrlsFromMessage(message);
+    let embeddedLinkResults = [];
+    if (embeddedUrls.length > 0) {
+      console.log(`[URL Extraction] Found ${embeddedUrls.length} URL(s): ${embeddedUrls.join(', ')}`);
+      const rawResults = await Promise.all(embeddedUrls.map(u => quickScanUrl(u).catch(() => null)));
+      embeddedLinkResults = rawResults.filter(Boolean);
+    }
+    const hasRiskyLinks = embeddedLinkResults.some(l => l.isScam);
+    const linkContext = embeddedLinkResults.length > 0
+      ? embeddedLinkResults.map(l =>
+          `${l.url} → Risk: ${l.riskLevel}${l.isWhitelisted ? ' (Official)' : ''}${l.dbMatches > 0 ? ' (Scam DB match)' : ''}${l.isShortened ? ' (Shortened URL)' : ''}${l.isSuspiciousTLD ? ' (Suspicious TLD)' : ''}`
+        ).join(' | ')
+      : 'None';
+
     // Emotional Manipulation Analysis
     const emotionalAnalysis = analyzeEmotionalManipulation(message);
     console.log(`[Emotion Check] Emotional Risk Score: ${emotionalAnalysis.emotionalScore}`);
@@ -620,6 +684,7 @@ DATABASE CONTEXT:
 Patterns found: ${dbMatches.length > 0 ? dbMatches.map(m => m.type).join(', ') : 'None'}
 Phone check: ${phoneAnalysis.length} numbers detected.
 Emotional triggers: ${Object.keys(emotionalAnalysis.triggers).join(', ') || 'None'}
+Embedded links in message: ${linkContext}${hasRiskyLinks ? ' ⚠️ RISKY LINKS DETECTED — treat as strong scam signal' : ''}
 
 MESSAGE: "${message}"
 
@@ -690,6 +755,15 @@ CRITICAL: If language is 'ms', output Malay. If 'zh', output Chinese. If 'ta', o
         finalResult.confidence = Math.max(finalResult.confidence, 92);
       }
     }
+
+    // Boost if risky embedded links were found
+    if (hasRiskyLinks) {
+      finalResult.isScam = true;
+      const highRiskLink = embeddedLinkResults.some(l => l.riskLevel === 'High');
+      finalResult.riskLevel = highRiskLink ? 'High' : (finalResult.riskLevel === 'Low' ? 'Medium' : finalResult.riskLevel);
+      finalResult.confidence = Math.min(Math.max(finalResult.confidence, highRiskLink ? 92 : 85), 99);
+    }
+    finalResult.embeddedLinks = embeddedLinkResults;
 
     // Add scoring details
     finalResult.rule_based_score = ruleScore.score;
