@@ -115,33 +115,52 @@
     flex-direction: row;
     top: auto;
     z-index: 1000;
+    /* Disable the desktop hover expand effect on mobile */
+    transition: none;
+    overflow: visible;
+  }
+
+  /* Prevent desktop hover from triggering on touch */
+  .sidebar:hover {
+    width: 100%;
   }
 
   .sidebar-nav {
     flex-direction: row;
     padding: 0;
-    justify-content: space-around;
+    width: 100%;
     gap: 0;
   }
 
+  /* Each nav item takes equal space */
   .sidebar-item {
+    flex: 1;
     flex-direction: column;
-    padding: 8px;
-    gap: 4px;
-    font-size: 0.7rem;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 2px;
+    gap: 3px;
+    font-size: 0.62rem;
     border-radius: 0;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
   }
 
   .sidebar-label {
     opacity: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
   }
 
   .sidebar-item.active {
-    box-shadow: inset 0 4px 0 var(--primary-accent);
+    box-shadow: inset 0 3px 0 var(--primary-accent);
   }
 
   .sidebar-icon {
-    font-size: 1rem;
+    font-size: 1.1rem;
+    min-width: unset;
   }
 
   .sidebar-footer {
