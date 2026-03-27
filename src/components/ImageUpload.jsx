@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import '../styles/InputForm.css';
 
 function ImageUpload({ onScan, t }) {
@@ -7,6 +7,16 @@ function ImageUpload({ onScan, t }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Enter' && preview && !isLoading) {
+        handleScan();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [preview, isLoading]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
