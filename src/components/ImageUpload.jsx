@@ -71,7 +71,7 @@ function ImageUpload({ onScan, t }) {
     } finally {
       setIsLoading(false);
     }
-  }, [preview, image, isLoading, onScan, t]);
+  }, [preview, image, onScan, t]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
