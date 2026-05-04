@@ -36,6 +36,26 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
+// Retry wrapper for transient Gemini 500/503 errors
+async function geminiGenerateWithRetry(promptOrParts, maxAttempts = 3) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const result = await model.generateContent(promptOrParts);
+      return result;
+    } catch (err) {
+      const status = err?.status ?? err?.response?.status;
+      const isTransient = status === 500 || status === 503 || err.message?.includes('Internal error');
+      if (isTransient && attempt < maxAttempts) {
+        const delay = 1000 * attempt; // 1s, 2s
+        console.warn(`[Gemini] Attempt ${attempt} failed (${status ?? err.message}), retrying in ${delay}ms…`);
+        await new Promise(r => setTimeout(r, delay));
+      } else {
+        throw err;
+      }
+    }
+  }
+}
+
 // Initialize OpenAI GPT-4o mini (used for image + link scanning)
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -567,7 +587,7 @@ RESPONSE FORMAT (JSON ONLY):
 
 CRITICAL: If language is 'ms', output Malay. If 'zh', output Chinese. If 'ta', output Tamil. If 'en', output English. DO NOT USE ANY OTHER LANGUAGE FOR EXPLANATION AND ADVICE.`;
 
-    const result = await model.generateContent([
+    const result = await geminiGenerateWithRetry([
       prompt,
       {
         inlineData: {
@@ -763,7 +783,7 @@ CRITICAL: If language is 'ms', output Malay. If 'zh', output Chinese. If 'ta', o
     try {
       let responseText = '';
       console.log(`[Routing] Using Gemini (Mode: ${effectiveMode})`);
-      const result = await model.generateContent(prompt);
+      const result = await geminiGenerateWithRetry(prompt);
       responseText = result.response.text();
       
       // Clean up potential markdown formatting from AI response
@@ -1003,7 +1023,7 @@ CRITICAL: If language is 'ms', output Malay. If 'zh', output Chinese. If 'ta', o
       } catch (e) {
         console.error('[Link] OpenAI error — falling back to Gemini:', e.message);
         try {
-          const geminiResult = await model.generateContent(prompt);
+          const geminiResult = await geminiGenerateWithRetry(prompt);
           const raw = geminiResult.response.text().replace(/```json\n?/g, '').replace(/```/g, '').trim();
           const match = raw.match(/\{[\s\S]*\}/);
           if (match) {
@@ -1146,7 +1166,7 @@ STRICT RULES:
 6. Each advice item must remain a separate array element
 7. Do NOT add or remove any fields`;
 
-    const result = await model.generateContent(prompt);
+    const result = await geminiGenerateWithRetry(prompt);
     let responseText = result.response.text();
     responseText = responseText.replace(/```json\n/g, '').replace(/```\n/g, '').replace(/```/g, '').trim();
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
@@ -1166,7 +1186,7 @@ STRICT RULES:
 //  SAVE REPORT 
 app.post('/api/save-report', async (req, res) => {
   try {
-    const { message, isScam, riskLevel, scamType, explanation, advice, type, confidence } = req.body;
+    const { message, isScam, riskLevel, scamType, explanation, advice, type, confidence, userId } = req.body;
 
     if (!message) {
       return res.status(400).json({ error: 'Message content is required' });
@@ -1181,6 +1201,7 @@ app.post('/api/save-report', async (req, res) => {
       explanation: explanation || '',
       advice: Array.isArray(advice) ? advice : [],
       confidence: confidence || 0,
+      userId: userId || null,
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
       createdAt: new Date().toLocaleString('en-MY'),
       userAgent: req.headers['user-agent'] || 'unknown'
@@ -1276,18 +1297,24 @@ app.get('/api/feedback-stats', async (req, res) => {
 // ==================== GET REPORTS ====================
 app.get('/api/reports', async (req, res) => {
   try {
-    const snapshot = await db.collection('scam_reports')
-      .orderBy('timestamp', 'desc')
-      .limit(100)
-      .get();
+    const { userId } = req.query;
+    let query = db.collection('scam_reports').limit(100);
+    if (userId) query = query.where('userId', '==', userId);
+    else query = query.orderBy('timestamp', 'desc');
+    const snapshot = await query.get();
 
     const reports = [];
     snapshot.forEach(doc => {
-      reports.push({
-        id: doc.id,
-        ...doc.data()
-      });
+      reports.push({ id: doc.id, ...doc.data() });
     });
+
+    if (userId) {
+      reports.sort((a, b) => {
+        const ta = a.timestamp?._seconds ?? 0;
+        const tb = b.timestamp?._seconds ?? 0;
+        return tb - ta;
+      });
+    }
 
     res.json({
       success: true,
