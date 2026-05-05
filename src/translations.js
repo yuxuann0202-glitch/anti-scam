@@ -375,7 +375,7 @@ const translations = {
     connError: "连接错误。请重试。",
     errorMsgEmpty: "请先输入一条消息。",
     errorMsgShort: "消息太短，无法分析。",
-    errorMsgHasLink: "此处不允许链接。请使用"链接"标签检查网址。",
+    errorMsgHasLink: "此处不允许链接。请使用'链接'标签检查网址。",
     errorInvalidLink: "请输入有效的网址（例如 https://example.com）",
     langCode: "zh",
     autoDetect: "智能防护",
