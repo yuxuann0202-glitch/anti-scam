@@ -35,22 +35,19 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // Initialize Gemini (used for message scanning + translation)
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-const fallbackModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
 // Retry wrapper — tries 2.5 flash first, falls back to 2.0 flash on 503/500
-async function geminiGenerateWithRetry(promptOrParts, maxAttempts = 3) {
+async function geminiGenerateWithRetry(promptOrParts, maxAttempts = 1) {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const useModel = attempt <= 2 ? model : fallbackModel;
-    const modelName = attempt <= 2 ? 'gemini-2.5-flash' : 'gemini-2.0-flash (fallback)';
     try {
-      const result = await useModel.generateContent(promptOrParts);
+      const result = await model.generateContent(promptOrParts);
       return result;
     } catch (err) {
       const status = err?.status ?? err?.response?.status;
       const isTransient = status === 500 || status === 503 || err.message?.includes('Internal error') || err.message?.includes('high demand');
       if (isTransient && attempt < maxAttempts) {
         const delay = 1000 * attempt;
-        console.warn(`[Gemini] ${modelName} attempt ${attempt} failed (${status ?? err.message}), retrying in ${delay}ms…`);
+        console.warn(`[Gemini] Attempt ${attempt} failed (${status ?? err.message}), retrying in ${delay}ms…`);
         await new Promise(r => setTimeout(r, delay));
       } else {
         throw err;
@@ -499,13 +496,8 @@ RESPONSE FORMAT (JSON ONLY):
 CRITICAL: If language is 'ms', output Malay. If 'zh', output Chinese. If 'ta', output Tamil. If 'en', output English. DO NOT USE ANY OTHER LANGUAGE FOR EXPLANATION AND ADVICE.`;
 
     const result = await geminiGenerateWithRetry([
-      prompt,
-      {
-        inlineData: {
-          data: base64Data,
-          mimeType: detectedMime
-        }
-      }
+      { text: prompt },
+      { inlineData: { data: base64Data, mimeType: detectedMime } }
     ]);
 
     const responseText = result.response.text();
@@ -611,7 +603,7 @@ app.post('/api/scan-message', async (req, res) => {
 Signals: patterns=${dbMatches.map(m=>m.type).join(',')||'none'}, phones=${phoneAnalysis.length}, emotional=${Object.keys(emotionalAnalysis.triggers).join(',')||'none'}
 MESSAGE: "${message}"
 Respond JSON only:
-{"isScam":bool,"confidence":1-99,"riskLevel":"Low"|"Medium"|"High","scamType":"string","explanation":"${explanationRule} IN ${lang.toUpperCase()}","advice":["step1","step2","step3"]}}`;
+{"isScam":bool,"confidence":1-99,"riskLevel":"Low"|"Medium"|"High","scamType":"string","explanation":"${explanationRule} IN ${lang.toUpperCase()}","advice":["step1","step2","step3"]}`;
 
 
     
@@ -629,24 +621,34 @@ Respond JSON only:
       }
       aiResult = JSON.parse(jsonMatch[0]);
     } catch (e) {
-      console.warn('AI unavailable, using rule-based fallback:', e.message);
-      const isScam = dbMatches.length > 0 || ruleScore.score >= 40 || emotionalAnalysis.isHighRisk;
-      const confidence = isScam ? Math.min(50 + ruleScore.score, 85) : 75;
-      aiResult = {
-        isScam,
-        confidence,
-        riskLevel: ruleScore.score >= 60 ? 'High' : ruleScore.score >= 30 ? 'Medium' : 'Low',
-        scamType: dbMatches.length > 0 ? dbMatches[0].type : (isScam ? 'Suspicious Content' : 'No Scam Detected'),
-        explanation: isScam
-          ? 'This message contains suspicious patterns. AI analysis temporarily unavailable — result based on pattern matching.'
-          : 'No obvious scam patterns detected. AI analysis temporarily unavailable.',
-        advice: [
-          getTranslation(lang, 'noClick'),
-          getTranslation(lang, 'reportScam'),
-          getTranslation(lang, 'verifyIndependently'),
-        ],
-        aiUnavailable: true,
-      };
+      console.warn('[Message] Gemini failed, trying OpenAI fallback:', e.message);
+      try {
+        const openaiResponse = await openai.chat.completions.create({
+          model: 'gpt-4o-mini',
+          max_tokens: 350,
+          messages: [{ role: 'user', content: prompt }]
+        });
+        aiResult = parseOpenAIJson(openaiResponse.choices[0].message.content);
+      } catch (oe) {
+        console.warn('[Message] OpenAI also failed, using rule-based fallback:', oe.message);
+        const isScam = dbMatches.length > 0 || ruleScore.score >= 40 || emotionalAnalysis.isHighRisk;
+        const confidence = isScam ? Math.min(50 + ruleScore.score, 85) : 75;
+        aiResult = {
+          isScam,
+          confidence,
+          riskLevel: ruleScore.score >= 60 ? 'High' : ruleScore.score >= 30 ? 'Medium' : 'Low',
+          scamType: dbMatches.length > 0 ? dbMatches[0].type : (isScam ? 'Suspicious Content' : 'No Scam Detected'),
+          explanation: isScam
+            ? 'This message contains suspicious patterns. AI analysis temporarily unavailable — result based on pattern matching.'
+            : 'No obvious scam patterns detected. AI analysis temporarily unavailable.',
+          advice: [
+            getTranslation(lang, 'noClick'),
+            getTranslation(lang, 'reportScam'),
+            getTranslation(lang, 'verifyIndependently'),
+          ],
+          aiUnavailable: true,
+        };
+      }
     }
 
     // Combine all scores with SMART logic
@@ -881,7 +883,22 @@ CRITICAL: If language is 'ms', output Malay. If 'zh', output Chinese. If 'ta', o
           }
         } catch (ge) {
           console.error('[Link] Gemini fallback also failed:', ge.message);
-          return res.status(500).json({ error: 'AI analysis unavailable. Try again later.' });
+          const isScam = dbMatches.length > 0 || reputation.isBlacklisted || reputation.abuseScore > 50;
+          aiResult = {
+            isScam,
+            confidence: isScam ? 80 : 60,
+            riskLevel: isScam ? 'High' : 'Low',
+            scamType: dbMatches[0]?.type || (isScam ? 'Suspicious Link' : 'Unknown'),
+            explanation: isScam
+              ? 'This link has suspicious patterns. AI analysis temporarily unavailable — result based on pattern matching.'
+              : 'No strong scam signals detected. AI analysis temporarily unavailable.',
+            advice: [
+              getTranslation(lang, 'noClick'),
+              getTranslation(lang, 'reportScam'),
+              getTranslation(lang, 'verifyIndependently'),
+            ],
+            aiUnavailable: true,
+          };
         }
       }
     }
