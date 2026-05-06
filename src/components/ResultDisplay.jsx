@@ -134,7 +134,7 @@ function ResultDisplay({ result, onBack, t, lang, onUpdateResult, user }) {
         })
       });
       const data = await response.json();
-      setSaveMessage(data.success ? t('successSave') : t('failSave'));
+      setSaveMessage(data.success ? t('successSave') : (data.details || t('failSave')));
     } catch (error) {
       setSaveMessage(t('connError'));
     } finally {
