@@ -29,6 +29,24 @@ function AppContent() {
       if (!localStorage.getItem(key)) {
         setShowOnboarding(true);
       }
+
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      fetch(`${API_URL}/api/reports?userId=${user.uid}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.success && data.data.length > 0) {
+            const loaded = data.data.map(doc => ({
+              ...doc,
+              timestamp: doc.timestamp?._seconds
+                ? doc.timestamp._seconds * 1000
+                : Date.now(),
+            }));
+            setScanHistory(loaded);
+          }
+        })
+        .catch(() => {});
+    } else {
+      setScanHistory([]);
     }
   }, [user]);
 
@@ -55,8 +73,26 @@ function AppContent() {
   const handleScan = (inputData) => {
     const stamped = { ...inputData, timestamp: Date.now() };
     setScanResult(stamped);
-    setScanHistory([stamped, ...scanHistory]);
+    setScanHistory(prev => [stamped, ...prev]);
     setActivePage('results');
+
+    const content = stamped.content || 'Image Scan';
+    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+    fetch(`${API_URL}/api/save-report`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: content,
+        type: stamped.type,
+        isScam: stamped.isScam,
+        riskLevel: stamped.riskLevel,
+        scamType: stamped.scamType,
+        explanation: stamped.explanation,
+        advice: stamped.advice,
+        confidence: stamped.confidence,
+        userId: user.uid,
+      }),
+    }).catch(() => {});
   };
 
   const clearHistory = () => setScanHistory([]);
