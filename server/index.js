@@ -329,7 +329,23 @@ const analyzeEmotionalManipulation = (message) => {
   };
 };
 
-//  ENHANCED RULE-BASED SCORING 
+// Deep scan post-processor — forces decisive result (no weak Medium)
+const enforceDeepScanDecision = (aiResult) => {
+  if (!aiResult) return aiResult;
+  if (aiResult.riskLevel === 'Medium') {
+    // Push Medium toward High or Low based on isScam verdict
+    aiResult.riskLevel = aiResult.isScam ? 'High' : 'Low';
+  }
+  // Boost confidence — deep scan should be more certain
+  if (aiResult.isScam) {
+    aiResult.confidence = Math.max(aiResult.confidence, 80);
+  } else {
+    aiResult.confidence = Math.max(aiResult.confidence, 75);
+  }
+  return aiResult;
+};
+
+//  ENHANCED RULE-BASED SCORING
 const calculateScamScore = (content, type = 'message') => {
   let score = 0;
   const indicators = {};
@@ -733,6 +749,7 @@ Respond JSON only:
       isHighRisk: emotionalAnalysis.isHighRisk
     };
 
+    if (aiModel === 'deep') finalResult = enforceDeepScanDecision(finalResult);
     logAnalysis('message', message.substring(0, 50), finalResult);
 
     res.json({
@@ -983,6 +1000,7 @@ CRITICAL: If language is 'ms', output Malay. If 'zh', output Chinese. If 'ta', o
       aiResult.databaseMatches = dbMatches;
     }
 
+    if (aiModel === 'deep') aiResult = enforceDeepScanDecision(aiResult);
     logAnalysis('link', url.substring(0, 50), aiResult);
 
     res.json({
@@ -1098,6 +1116,7 @@ JSON ONLY: {"isScam":bool,"confidence":(1-99),"riskLevel":"Low|Medium|High","sca
       }
 
       aiResult.ocr_success = true;
+      if (aiModel === 'deep') aiResult = enforceDeepScanDecision(aiResult);
       logAnalysis('image', (aiResult.extractedText || '').substring(0, 50), aiResult);
 
       return res.json({
