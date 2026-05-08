@@ -1,7 +1,7 @@
 {
   "name": "anti-scam",
   "version": "2.0.0",
-  "description": "ANTI SCAM - Malaysian Scam Detection System with Ultimate Features (99.5% Accuracy)",
+  "description": "ANTI SCAM - Malaysian Scam Detection System with Ultimate Features",
   "private": true,
   "dependencies": {
     "@google/generative-ai": "^0.3.0",

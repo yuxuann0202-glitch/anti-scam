@@ -34,7 +34,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Initialize Gemini (used for message scanning + translation)
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY, { apiVersion: 'v1beta' });
-const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-preview-05-20' });
+const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-preview-05-20' }, { generationConfig: { temperature: 0 } });
 
 // Retry wrapper — tries 2.5 flash first, falls back to 2.0 flash on 503/500
 async function geminiGenerateWithRetry(promptOrParts, maxAttempts = 1) {
@@ -435,6 +435,12 @@ const calculateScamScore = (content, type = 'message') => {
     if (/lucky draw|lottery winner|draw winner|you have won|claim prize|processing fee/i.test(content)) {
       score += 15;
       indicators.lotteryScam = true;
+    }
+
+    // 16. Security Question Social Engineering (25 points)
+    if (/security question|secret question|mother.?s maiden|first pet|childhood|place of birth|verify yourself|answer to unlock|answer.*account|confirm.*identity.*question|what is your.*name|what was your/i.test(content)) {
+      score += 25;
+      indicators.securityQuestion = true;
     }
   }
 
